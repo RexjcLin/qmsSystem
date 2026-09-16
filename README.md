@@ -1,6 +1,6 @@
 # 品質管理系統（QMS）MVP
 
-本專案延續既定規劃：PC Django 管理後台、Android App 透過 REST API 操作，以及 MySQL/MariaDB 資料庫。第一版先落地產品、檢驗項目、批次、檢驗結果與不良品改善流程。
+Quality management system repository。此專案延續既定規劃：PC Django 管理後台、Android App 透過 REST API 操作，以及 MySQL/MariaDB 資料庫。第一版先落地產品、檢驗項目、批次、檢驗結果與不良品改善流程。
 
 ## 已建立
 
