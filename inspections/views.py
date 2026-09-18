@@ -24,7 +24,12 @@ class ProductInspectionItemList(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, product_id):
-        links = ProductInspectionItem.objects.filter(product_id=product_id).select_related("item").prefetch_related("item__options")
+        links = (
+            ProductInspectionItem.objects.filter(product_id=product_id)
+            .select_related("item")
+            .prefetch_related("item__options")
+            .order_by("sort_order", "id")
+        )
         return Response(
             [
                 {

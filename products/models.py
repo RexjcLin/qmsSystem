@@ -94,8 +94,8 @@ class InspectionItemOption(models.Model):
 
 
 class ProductInspectionItem(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="inspection_item_links")
-    item = models.ForeignKey(InspectionItem, on_delete=models.PROTECT, related_name="product_links")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="inspection_item_links")
+    item = models.ForeignKey(InspectionItem, on_delete=models.CASCADE, related_name="product_links")
     inspection_type = models.CharField(max_length=16, choices=InspectionItemType.choices)
     inspection_method = models.CharField(max_length=100, blank=True)
     standard_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

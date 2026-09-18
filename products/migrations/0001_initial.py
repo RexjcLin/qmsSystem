@@ -77,8 +77,8 @@ class Migration(migrations.Migration):
                 ('sort_order', models.PositiveIntegerField(default=0)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('item', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='product_links', to='products.inspectionitem')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='inspection_item_links', to='products.product')),
+                ('item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='product_links', to='products.inspectionitem')),
+                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='inspection_item_links', to='products.product')),
             ],
             options={
                 'db_table': 'product_inspection_items',

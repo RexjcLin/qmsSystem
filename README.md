@@ -74,7 +74,11 @@ export QMS_INSPECTOR_PASSWORD="ChangeMeInspector123!"
 python manage.py seed_qms_data
 ```
 
-若未提供上述環境變數，seed command 會使用僅供本機開發的預設密碼。請勿在正式環境沿用。
+若未提供上述環境變數，seed command 會在首次建立帳號時使用僅供本機開發的預設密碼。請勿在正式環境沿用。若需要重新套用本機密碼，請明確使用：
+
+```bash
+python manage.py seed_qms_data --reset-passwords
+```
 
 ## 管理後台與 API
 

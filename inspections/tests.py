@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.db.models import ProtectedError
 from django.test import TestCase
-from rest_framework.test import APIRequestFactory
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from accounts.models import Role, RoleChoices, User
 from corrective_actions.models import CorrectiveAction, CorrectiveActionStatus
@@ -16,8 +16,10 @@ from inspections.models import (
     InspectionResult,
 )
 from inspections.serializers import SubmitInspectionSerializer
+from inspections.views import ProductInspectionItemList
 from products.models import (
     InspectionItem,
+    InspectionItemOption,
     InspectionItemType,
     Product,
     ProductCategory,
@@ -140,6 +142,17 @@ class QMSModelTests(TestCase):
         self.assertEqual(text_result.measured_text, "No scratch")
         self.assertEqual(text_result.standard_value_snapshot, "No scratch")
 
+    def test_product_inspection_item_api_returns_ordered_options(self):
+        InspectionItemOption.objects.create(item=self.item, value="B", label="Beta", sort_order=20)
+        InspectionItemOption.objects.create(item=self.item, value="A", label="Alpha", sort_order=10)
+        request = self.factory.get(f"/api/products/{self.product.id}/inspection-items/")
+        force_authenticate(request, user=self.user)
+        response = ProductInspectionItemList.as_view()(request, product_id=self.product.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]["product_item_id"], self.product_item.id)
+        self.assertEqual(response.data[0]["options"], [{"value": "A", "label": "Alpha"}, {"value": "B", "label": "Beta"}])
+
     def test_submit_serializer_rejects_completed_batch(self):
         self.batch.status = BatchStatus.COMPLETED
         self.batch.save(update_fields=["status"])
@@ -197,7 +210,15 @@ class QMSModelTests(TestCase):
         with self.assertRaises(ProtectedError):
             defect.delete()
 
-    def test_product_and_item_deletions_are_protected_when_config_exists(self):
+    def test_product_and_item_deletions_are_blocked_when_historical_results_exist(self):
+        record = InspectionRecord.objects.create(batch=self.batch, inspector=self.user)
+        InspectionResult.objects.create(
+            inspection=record,
+            product_inspection_item=self.product_item,
+            measured_value="5.00",
+            result=InspectionItemResult.PASS,
+            inspection_type_snapshot="",
+        )
         with self.assertRaises(ProtectedError):
             self.product.delete()
         with self.assertRaises(ProtectedError):

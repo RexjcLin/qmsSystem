@@ -11,7 +11,15 @@ from products.models import InspectionItem, InspectionItemType, Product, Product
 class Command(BaseCommand):
     help = "Create idempotent QMS seed data."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--reset-passwords",
+            action="store_true",
+            help="Reset representative user passwords on existing seed accounts.",
+        )
+
     def handle(self, *args, **options):
+        reset_passwords = options["reset_passwords"]
         roles = {
             RoleChoices.ADMIN: "系統管理員",
             RoleChoices.QUALITY_MANAGER: "品質主管",
@@ -68,7 +76,7 @@ class Command(BaseCommand):
                 if getattr(user, field) != value:
                     setattr(user, field, value)
                     changed = True
-            if created or not user.check_password(spec["password"]):
+            if created or reset_passwords:
                 user.set_password(spec["password"])
                 changed = True
             if changed:
