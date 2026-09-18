@@ -2,6 +2,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
 from django.db.models import ProtectedError
 from django.test import TestCase
+from rest_framework.test import APIRequestFactory
 
 from accounts.models import Role, RoleChoices, User
 from corrective_actions.models import CorrectiveAction, CorrectiveActionStatus
@@ -14,6 +15,7 @@ from inspections.models import (
     InspectionRecord,
     InspectionResult,
 )
+from inspections.serializers import SubmitInspectionSerializer
 from products.models import (
     InspectionItem,
     InspectionItemType,
@@ -27,6 +29,7 @@ from products.models import (
 class QMSModelTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.factory = APIRequestFactory()
         role = Role.objects.create(name=RoleChoices.INSPECTOR, description="Inspector")
         cls.user = User.objects.create_user(
             "inspector",
@@ -86,6 +89,56 @@ class QMSModelTests(TestCase):
         self.assertEqual(str(result.standard_min_snapshot), "4.90")
         self.assertEqual(str(result.standard_max_snapshot), "5.10")
         self.assertEqual(result.standard_value_snapshot, "5.00")
+
+    def test_submit_serializer_creates_snapshots_for_numeric_and_text_results(self):
+        text_item = InspectionItem.objects.create(
+            name="Visual Inspection",
+            item_type=InspectionItemType.TEXT,
+            inspection_method="Visual",
+            standard_value="No scratch",
+        )
+        text_product_item = ProductInspectionItem.objects.create(
+            product=self.product,
+            item=text_item,
+            inspection_type=InspectionItemType.TEXT,
+            inspection_method="Visual",
+            standard_value="No scratch",
+            is_required=True,
+            sort_order=2,
+        )
+        request = self.factory.post("/api/inspection/submit/")
+        request.user = self.user
+        serializer = SubmitInspectionSerializer(
+            data={
+                "batch_id": self.batch.id,
+                "results": [
+                    {
+                        "product_item_id": self.product_item.id,
+                        "measured_value": "5.00",
+                        "result": InspectionItemResult.PASS,
+                    },
+                    {
+                        "product_item_id": text_product_item.id,
+                        "measured_text": "No scratch",
+                        "result": InspectionItemResult.PASS,
+                    },
+                ],
+            },
+            context={"request": request},
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        record = serializer.save()
+        numeric_result = record.results.get(product_inspection_item=self.product_item)
+        text_result = record.results.get(product_inspection_item=text_product_item)
+        self.batch.refresh_from_db()
+
+        self.assertEqual(record.overall_result, InspectionOverallResult.PASS)
+        self.assertEqual(self.batch.status, BatchStatus.COMPLETED)
+        self.assertEqual(numeric_result.inspection_method_snapshot, "Multimeter")
+        self.assertEqual(str(numeric_result.standard_min_snapshot), "4.90")
+        self.assertEqual(text_result.inspection_type_snapshot, InspectionItemType.TEXT)
+        self.assertEqual(text_result.measured_text, "No scratch")
+        self.assertEqual(text_result.standard_value_snapshot, "No scratch")
 
     def test_key_status_defaults(self):
         record = InspectionRecord.objects.create(batch=self.batch, inspector=self.user)

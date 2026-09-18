@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('completed_at', models.DateTimeField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('assigned_to', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='assigned_actions', to=settings.AUTH_USER_MODEL)),
+                ('assigned_to', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assigned_actions', to=settings.AUTH_USER_MODEL)),
                 ('defect', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='corrective_actions', to='defects.defectrecord')),
             ],
             options={

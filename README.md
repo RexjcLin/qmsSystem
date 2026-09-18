@@ -91,6 +91,15 @@ python manage.py runserver
 
 JWT 已啟用於 DRF authentication 設定，可在後續 API 擴充登入/刷新端點。
 
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/token/ \
+  -H "Content-Type: application/json" \
+  -d '{"username":"inspector","password":"ChangeMeInspector123!"}'
+```
+
+- `POST /api/auth/token/`
+- `POST /api/auth/token/refresh/`
+
 ## 測試
 
 ```bash

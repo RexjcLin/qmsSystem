@@ -40,8 +40,8 @@ class SubmitInspectionSerializer(serializers.Serializer):
         except InspectionBatch.DoesNotExist as exc:
             raise serializers.ValidationError({"batch_id": "找不到檢驗批次。"}) from exc
 
-        if batch.status == BatchStatus.CANCELLED:
-            raise serializers.ValidationError({"batch_id": "已取消的批次不可送出檢驗結果。"})
+        if batch.status not in {BatchStatus.PENDING, BatchStatus.INSPECTING}:
+            raise serializers.ValidationError({"batch_id": "此批次目前不可送出檢驗結果。"})
 
         product_items = ProductInspectionItem.objects.filter(product=batch.product)
         permitted = set(product_items.values_list("id", flat=True))

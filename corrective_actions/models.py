@@ -18,7 +18,7 @@ class CorrectiveAction(models.Model):
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="assigned_actions",
     )
     due_date = models.DateField(null=True, blank=True)
