@@ -34,8 +34,8 @@ python manage.py runserver
 ```powershell
 $env:DB_ENGINE='mysql'
 $env:DB_NAME='qms_db'
-$env:DB_USER='qms_user'
-$env:DB_PASSWORD='請改成安全密碼'
+$env:DB_USER='root'
+$env:DB_PASSWORD='1qaz@wsx'
 $env:DB_HOST='127.0.0.1'
 $env:DB_PORT='3306'
 python manage.py migrate

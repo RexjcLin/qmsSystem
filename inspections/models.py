@@ -45,7 +45,7 @@ class InspectionResult(models.Model):
     inspection = models.ForeignKey(InspectionRecord, on_delete=models.CASCADE, related_name="results")
     item = models.ForeignKey(InspectionItem, on_delete=models.PROTECT, related_name="results")
     measured_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    result = models.CharField(max_length=4, choices=ResultStatus.choices)
+    result = models.CharField(max_length=8, choices=ResultStatus.choices)
     remark = models.TextField(blank=True)
     class Meta:
         db_table = "inspection_results"
