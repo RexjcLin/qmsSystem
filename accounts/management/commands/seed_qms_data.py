@@ -1,4 +1,5 @@
 import os
+import secrets
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand
@@ -35,7 +36,7 @@ class Command(BaseCommand):
                 "full_name": "QMS Admin",
                 "email": "admin@example.com",
                 "role": role_objects[RoleChoices.ADMIN],
-                "password": os.getenv("QMS_ADMIN_PASSWORD", "ChangeMeAdmin123!"),
+                "password_env": "QMS_ADMIN_PASSWORD",
                 "is_staff": True,
                 "is_superuser": True,
             },
@@ -44,7 +45,7 @@ class Command(BaseCommand):
                 "full_name": "Quality Manager",
                 "email": "manager@example.com",
                 "role": role_objects[RoleChoices.QUALITY_MANAGER],
-                "password": os.getenv("QMS_MANAGER_PASSWORD", "ChangeMeManager123!"),
+                "password_env": "QMS_MANAGER_PASSWORD",
                 "is_staff": True,
                 "is_superuser": False,
             },
@@ -53,7 +54,7 @@ class Command(BaseCommand):
                 "full_name": "Inspector",
                 "email": "inspector@example.com",
                 "role": role_objects[RoleChoices.INSPECTOR],
-                "password": os.getenv("QMS_INSPECTOR_PASSWORD", "ChangeMeInspector123!"),
+                "password_env": "QMS_INSPECTOR_PASSWORD",
                 "is_staff": True,
                 "is_superuser": False,
             },
@@ -77,7 +78,15 @@ class Command(BaseCommand):
                     setattr(user, field, value)
                     changed = True
             if created or reset_passwords:
-                user.set_password(spec["password"])
+                password = os.getenv(spec["password_env"])
+                if not password:
+                    password = secrets.token_urlsafe(18)
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"Generated one-time local password for {spec['username']}: {password}"
+                        )
+                    )
+                user.set_password(password)
                 changed = True
             if changed:
                 user.save()

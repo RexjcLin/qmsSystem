@@ -151,6 +151,11 @@ class QMSModelTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data[0]["product_item_id"], self.product_item.id)
+        self.assertEqual(response.data[0]["inspection_type"], self.product_item.inspection_type)
+        self.assertEqual(response.data[0]["method"], self.product_item.inspection_method)
+        self.assertEqual(str(response.data[0]["standard_min"]), "4.90")
+        self.assertEqual(str(response.data[0]["standard_max"]), "5.10")
+        self.assertEqual(response.data[0]["standard_value"], "5.00")
         self.assertEqual(response.data[0]["options"], [{"value": "A", "label": "Alpha"}, {"value": "B", "label": "Beta"}])
 
     def test_submit_serializer_rejects_completed_batch(self):

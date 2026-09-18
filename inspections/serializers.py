@@ -95,6 +95,6 @@ class SubmitInspectionSerializer(serializers.Serializer):
                 remark=row.get("remark", ""),
                 inspection_type_snapshot="",
             )
-        batch.status = BatchStatus.COMPLETED if overall != InspectionOverallResult.PENDING else BatchStatus.INSPECTING
+        batch.status = BatchStatus.COMPLETED if overall == InspectionOverallResult.PASS else BatchStatus.INSPECTING
         batch.save(update_fields=["status", "updated_at"])
         return record

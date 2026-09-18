@@ -38,9 +38,5 @@ class User(AbstractUser):
         db_table = "users"
         indexes = [models.Index(fields=["role", "status"])]
 
-    def save(self, *args, **kwargs):
-        self.is_active = self.status == UserStatus.ACTIVE
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return self.full_name or self.username
