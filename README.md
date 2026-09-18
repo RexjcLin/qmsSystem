@@ -27,7 +27,7 @@
    pip install -r requirements.txt
    ```
 
-2. 複製環境變數範例：
+2. 複製環境變數範例（供 shell / IDE / direnv 載入參考）：
 
    ```bash
    cp .env.example .env

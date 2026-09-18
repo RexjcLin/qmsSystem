@@ -81,7 +81,7 @@ class InspectionResult(models.Model):
     measured_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     measured_text = models.CharField(max_length=255, blank=True)
     result = models.CharField(max_length=8, choices=InspectionItemResult.choices, default=InspectionItemResult.PENDING)
-    inspection_type_snapshot = models.CharField(max_length=16)
+    inspection_type_snapshot = models.CharField(max_length=16, blank=True)
     inspection_method_snapshot = models.CharField(max_length=100, blank=True)
     standard_min_snapshot = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     standard_max_snapshot = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
