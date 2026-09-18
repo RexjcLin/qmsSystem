@@ -89,7 +89,7 @@ python manage.py runserver
   - `GET /api/products/{product_id}/inspection-items/`
   - `POST /api/inspection/submit/`
 
-JWT 已啟用於 DRF authentication 設定，可在後續 API 擴充登入/刷新端點。
+JWT 已啟用於 DRF authentication 設定，且已提供登入/刷新 token 端點。
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/auth/token/ \
@@ -110,5 +110,6 @@ python manage.py test
 
 - 產品檢驗設定唯一鍵
 - 檢驗結果快照行為
+- `SubmitInspectionSerializer` 的數值/文字結果寫入與快照保存
 - 主要狀態預設值
 - 重要刪除/保護關係
