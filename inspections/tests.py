@@ -140,6 +140,27 @@ class QMSModelTests(TestCase):
         self.assertEqual(text_result.measured_text, "No scratch")
         self.assertEqual(text_result.standard_value_snapshot, "No scratch")
 
+    def test_submit_serializer_rejects_completed_batch(self):
+        self.batch.status = BatchStatus.COMPLETED
+        self.batch.save(update_fields=["status"])
+        request = self.factory.post("/api/inspection/submit/")
+        request.user = self.user
+        serializer = SubmitInspectionSerializer(
+            data={
+                "batch_id": self.batch.id,
+                "results": [
+                    {
+                        "product_item_id": self.product_item.id,
+                        "measured_value": "5.00",
+                        "result": InspectionItemResult.PASS,
+                    }
+                ],
+            },
+            context={"request": request},
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertEqual(serializer.errors["batch_id"][0], "此批次目前不可送出檢驗結果。")
+
     def test_key_status_defaults(self):
         record = InspectionRecord.objects.create(batch=self.batch, inspector=self.user)
         defect_type = DefectType.objects.create(name="Scratch", status=DefectTypeStatus.ACTIVE)
@@ -175,3 +196,9 @@ class QMSModelTests(TestCase):
         CorrectiveAction.objects.create(defect=defect, action_description="Replace housing")
         with self.assertRaises(ProtectedError):
             defect.delete()
+
+    def test_product_and_item_deletions_are_protected_when_config_exists(self):
+        with self.assertRaises(ProtectedError):
+            self.product.delete()
+        with self.assertRaises(ProtectedError):
+            self.item.delete()

@@ -62,7 +62,9 @@ class SubmitInspectionSerializer(serializers.Serializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        batch = validated_data["batch"]
+        batch = InspectionBatch.objects.select_for_update().select_related("product").get(pk=validated_data["batch"].pk)
+        if batch.status not in {BatchStatus.PENDING, BatchStatus.INSPECTING}:
+            raise serializers.ValidationError({"batch_id": "此批次目前不可送出檢驗結果。"})
         rows = validated_data["results"]
         required_item_ids = {
             product_item_id
