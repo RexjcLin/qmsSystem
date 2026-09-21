@@ -1,4 +1,5 @@
 from django.db import transaction
+from rest_framework.exceptions import APIException
 from rest_framework import serializers
 from .models import BatchStatus, InspectionBatch, InspectionRecord, InspectionResult, ResultStatus
 from products.models import ProductInspectionItem
@@ -55,48 +56,53 @@ class SubmitInspectionSerializer(serializers.Serializer):
         return attrs
 
     def _calculate_overall_result(self, rows, product_items):
-        required_rows = [row for row in rows if product_items[row["product_item_id"]].is_required]
-        if any(row["result"] == "FAIL" for row in required_rows):
+        if any(row["result"] == "FAIL" for row in rows):
             return ResultStatus.FAIL
+        required_rows = [row for row in rows if product_items[row["product_item_id"]].is_required]
         if all(row["result"] == "PASS" for row in required_rows):
             return ResultStatus.PASS
         return ResultStatus.PENDING
 
     def create(self, validated_data):
-        with transaction.atomic():
-            batch = InspectionBatch.objects.select_for_update().select_related("product").get(pk=validated_data["batch"].pk)
-            if batch.status == BatchStatus.CANCELLED:
-                raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})
-            if batch.status == BatchStatus.COMPLETED:
-                raise serializers.ValidationError({"batch_id": "此批次已完成檢驗，不可重複提交。"})
+        try:
+            with transaction.atomic():
+                batch = InspectionBatch.objects.select_for_update().select_related("product").get(pk=validated_data["batch"].pk)
+                if batch.status == BatchStatus.CANCELLED:
+                    raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})
+                if batch.status == BatchStatus.COMPLETED:
+                    raise serializers.ValidationError({"batch_id": "此批次已完成檢驗，不可重複提交。"})
 
-            if batch.status == BatchStatus.PENDING:
-                batch.status = BatchStatus.INSPECTING
-                batch.save(update_fields=["status", "updated_at"])
+                if batch.status == BatchStatus.PENDING:
+                    batch.status = BatchStatus.INSPECTING
+                    batch.save(update_fields=["status", "updated_at"])
 
-            rows = validated_data["results"]
-            product_items = validated_data["product_items"]
-            overall = self._calculate_overall_result(rows, product_items)
-            record = InspectionRecord.objects.create(
-                batch=batch,
-                inspector=self.context["request"].user,
-                overall_result=overall,
-                remark=validated_data.get("remark", ""),
-            )
-            InspectionResult.objects.bulk_create([
-                InspectionResult(
-                    inspection=record,
-                    product_item=product_items[r["product_item_id"]],
-                    measured_value=r.get("measured_value"),
-                    result=r["result"],
-                    standard_min_snapshot=product_items[r["product_item_id"]].item.standard_min,
-                    standard_max_snapshot=product_items[r["product_item_id"]].item.standard_max,
-                    inspection_method_snapshot=product_items[r["product_item_id"]].item.inspection_method,
-                    unit_snapshot=product_items[r["product_item_id"]].item.unit,
-                    remark=r.get("remark", ""),
+                rows = validated_data["results"]
+                product_items = validated_data["product_items"]
+                overall = self._calculate_overall_result(rows, product_items)
+                record = InspectionRecord.objects.create(
+                    batch=batch,
+                    inspector=self.context["request"].user,
+                    overall_result=overall,
+                    remark=validated_data.get("remark", ""),
                 )
-                for r in rows
-            ])
-            batch.status = BatchStatus.COMPLETED
-            batch.save(update_fields=["status", "updated_at"])
-            return record
+                InspectionResult.objects.bulk_create([
+                    InspectionResult(
+                        inspection=record,
+                        product_item=product_items[r["product_item_id"]],
+                        measured_value=r.get("measured_value"),
+                        result=r["result"],
+                        standard_min_snapshot=product_items[r["product_item_id"]].item.standard_min,
+                        standard_max_snapshot=product_items[r["product_item_id"]].item.standard_max,
+                        inspection_method_snapshot=product_items[r["product_item_id"]].item.inspection_method,
+                        unit_snapshot=product_items[r["product_item_id"]].item.unit,
+                        remark=r.get("remark", ""),
+                    )
+                    for r in rows
+                ])
+                batch.status = BatchStatus.COMPLETED
+                batch.save(update_fields=["status", "updated_at"])
+                return record
+        except serializers.ValidationError:
+            raise
+        except Exception as exc:
+            raise APIException("檢驗結果提交失敗。") from exc

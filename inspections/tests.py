@@ -92,17 +92,38 @@ class SubmitInspectionAPITests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["overall_result"], "FAIL")
 
-    def test_submit_rolls_back_when_result_save_fails(self):
-        with patch("inspections.serializers.InspectionResult.objects.bulk_create", side_effect=RuntimeError("boom")):
-            with self.assertRaises(RuntimeError):
-                self.client.post("/api/inspection/submit/", {
-                    "batch_id": self.batch.id,
-                    "results": [{
-                        "product_item_id": self.product_item_required.id,
-                        "result": "PASS",
-                    }],
-                }, format="json")
+    def test_submit_marks_overall_fail_when_optional_item_fails(self):
+        response = self.client.post("/api/inspection/submit/", {
+            "batch_id": self.batch.id,
+            "results": [
+                {
+                    "product_item_id": self.product_item_required.id,
+                    "measured_value": "5.10",
+                    "result": "PASS",
+                },
+                {
+                    "product_item_id": self.product_item_optional.id,
+                    "result": "FAIL",
+                },
+            ],
+        }, format="json")
 
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["overall_result"], "FAIL")
+
+    def test_submit_rolls_back_when_result_save_fails(self):
+        self.client.raise_request_exception = False
+        with patch("inspections.serializers.InspectionResult.objects.bulk_create", side_effect=RuntimeError("boom")):
+            response = self.client.post("/api/inspection/submit/", {
+                "batch_id": self.batch.id,
+                "results": [{
+                    "product_item_id": self.product_item_required.id,
+                    "result": "PASS",
+                }],
+            }, format="json")
+
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.data["errors"]["detail"], "檢驗結果提交失敗。")
         self.batch.refresh_from_db()
         self.assertEqual(self.batch.status, "PENDING")
         self.assertFalse(InspectionRecord.objects.filter(batch=self.batch).exists())
