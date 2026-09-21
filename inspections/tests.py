@@ -79,6 +79,22 @@ class SubmitInspectionAPITests(TestCase):
             [missing_product_item.id],
         )
 
+    def test_submit_rejects_na_for_required_item(self):
+        response = self.client.post("/api/inspection/submit/", {
+            "batch_id": self.batch.id,
+            "results": [{
+                "product_item_id": self.product_item_required.id,
+                "result": "NA",
+            }],
+        }, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["errors"]["results"][0], "必填檢驗項目不可標記為 NA。")
+        self.assertEqual(
+            [int(item) for item in response.data["errors"]["required_na_product_item_ids"]],
+            [self.product_item_required.id],
+        )
+
     def test_submit_marks_overall_fail_when_required_item_fails(self):
         response = self.client.post("/api/inspection/submit/", {
             "batch_id": self.batch.id,

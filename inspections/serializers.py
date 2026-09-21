@@ -53,6 +53,17 @@ class SubmitInspectionSerializer(serializers.Serializer):
                 "missing_required_product_item_ids": missing_required,
             })
 
+        required_na_ids = sorted(
+            row["product_item_id"]
+            for row in attrs["results"]
+            if product_items[row["product_item_id"]].is_required and row["result"] == ResultStatus.NA
+        )
+        if required_na_ids:
+            raise serializers.ValidationError({
+                "results": "必填檢驗項目不可標記為 NA。",
+                "required_na_product_item_ids": required_na_ids,
+            })
+
         attrs["product_items"] = product_items
         attrs["batch"] = batch
         return attrs
@@ -60,10 +71,7 @@ class SubmitInspectionSerializer(serializers.Serializer):
     def _calculate_overall_result(self, rows, product_items):
         if any(row["result"] == "FAIL" for row in rows):
             return ResultStatus.FAIL
-        required_rows = [row for row in rows if product_items[row["product_item_id"]].is_required]
-        if all(row["result"] == "PASS" for row in required_rows):
-            return ResultStatus.PASS
-        return ResultStatus.PENDING
+        return ResultStatus.PASS
 
     def create(self, validated_data):
         try:
