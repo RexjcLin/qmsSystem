@@ -151,3 +151,12 @@ class SubmitInspectionAPITests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertIn("errors", response.data)
+
+    def test_quality_manager_can_access_pending_batches(self):
+        manager_role = Role.objects.create(name="QUALITY_MANAGER")
+        manager = get_user_model().objects.create_user(username="manager", role=manager_role)
+        self.client.force_authenticate(manager)
+
+        response = self.client.get("/api/inspection/pending/")
+
+        self.assertEqual(response.status_code, 200)
