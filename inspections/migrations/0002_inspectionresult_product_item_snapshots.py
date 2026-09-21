@@ -7,11 +7,16 @@ def populate_product_items_and_snapshots(apps, schema_editor):
     ProductInspectionItem = apps.get_model("products", "ProductInspectionItem")
 
     for result in InspectionResult.objects.select_related("inspection__batch__product", "item").all():
-        product_item, _ = ProductInspectionItem.objects.get_or_create(
-            product=result.inspection.batch.product,
-            item=result.item,
-            defaults={"is_required": True, "sort_order": 0},
-        )
+        try:
+            product_item = ProductInspectionItem.objects.get(
+                product=result.inspection.batch.product,
+                item=result.item,
+            )
+        except ProductInspectionItem.DoesNotExist as exc:
+            raise RuntimeError(
+                "Cannot migrate inspection result without matching ProductInspectionItem "
+                f"(inspection_result_id={result.id}, product_id={result.inspection.batch.product_id}, item_id={result.item_id})."
+            ) from exc
         result.product_item = product_item
         result.standard_min_snapshot = result.item.standard_min
         result.standard_max_snapshot = result.item.standard_max

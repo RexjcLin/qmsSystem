@@ -34,6 +34,8 @@ class SubmitInspectionSerializer(serializers.Serializer):
             raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})
         if batch.status == BatchStatus.COMPLETED:
             raise serializers.ValidationError({"batch_id": "此批次已完成檢驗，不可重複提交。"})
+        if batch.status == BatchStatus.INSPECTING:
+            raise serializers.ValidationError({"batch_id": "此批次正在檢驗中，請勿重複提交。"})
 
         links = ProductInspectionItem.objects.filter(product=batch.product).select_related("item")
         product_items = {link.id: link for link in links}
@@ -71,6 +73,8 @@ class SubmitInspectionSerializer(serializers.Serializer):
                     raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})
                 if batch.status == BatchStatus.COMPLETED:
                     raise serializers.ValidationError({"batch_id": "此批次已完成檢驗，不可重複提交。"})
+                if batch.status == BatchStatus.INSPECTING:
+                    raise serializers.ValidationError({"batch_id": "此批次正在檢驗中，請勿重複提交。"})
 
                 if batch.status == BatchStatus.PENDING:
                     batch.status = BatchStatus.INSPECTING

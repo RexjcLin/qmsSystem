@@ -111,6 +111,21 @@ class SubmitInspectionAPITests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["overall_result"], "FAIL")
 
+    def test_submit_rejects_inspecting_batch(self):
+        self.batch.status = "INSPECTING"
+        self.batch.save(update_fields=["status", "updated_at"])
+
+        response = self.client.post("/api/inspection/submit/", {
+            "batch_id": self.batch.id,
+            "results": [{
+                "product_item_id": self.product_item_required.id,
+                "result": "PASS",
+            }],
+        }, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["errors"]["batch_id"][0], "此批次正在檢驗中，請勿重複提交。")
+
     def test_submit_rolls_back_when_result_save_fails(self):
         self.client.raise_request_exception = False
         with patch("inspections.serializers.InspectionResult.objects.bulk_create", side_effect=RuntimeError("boom")):
