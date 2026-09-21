@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-from products.models import Product, InspectionItem
+from products.models import Product, ProductInspectionItem
 
 
 class BatchStatus(models.TextChoices):
@@ -43,10 +43,14 @@ class InspectionRecord(models.Model):
 
 class InspectionResult(models.Model):
     inspection = models.ForeignKey(InspectionRecord, on_delete=models.CASCADE, related_name="results")
-    item = models.ForeignKey(InspectionItem, on_delete=models.PROTECT, related_name="results")
+    product_item = models.ForeignKey(ProductInspectionItem, on_delete=models.PROTECT, related_name="results")
     measured_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     result = models.CharField(max_length=8, choices=ResultStatus.choices)
+    standard_min_snapshot = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    standard_max_snapshot = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    inspection_method_snapshot = models.CharField(max_length=100, blank=True)
+    unit_snapshot = models.CharField(max_length=30, blank=True)
     remark = models.TextField(blank=True)
     class Meta:
         db_table = "inspection_results"
-        constraints = [models.UniqueConstraint(fields=["inspection", "item"], name="uq_inspection_item")]
+        constraints = [models.UniqueConstraint(fields=["inspection", "product_item"], name="uq_inspection_product_item")]

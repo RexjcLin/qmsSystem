@@ -35,7 +35,7 @@ python manage.py runserver
 $env:DB_ENGINE='mysql'
 $env:DB_NAME='qms_db'
 $env:DB_USER='root'
-$env:DB_PASSWORD='1qaz@wsx'
+$env:DB_PASSWORD='your-password'
 $env:DB_HOST='127.0.0.1'
 $env:DB_PORT='3306'
 python manage.py migrate
@@ -54,5 +54,17 @@ python manage.py migrate
 提交範例：
 
 ```json
-{"batch_id": 1, "remark": "首件檢驗", "results": [{"item_id": 1, "measured_value": 5.10, "result": "PASS"}]}
+{
+  "batch_id": 1,
+  "remark": "首件檢驗",
+  "results": [
+    {
+      "product_item_id": 1,
+      "measured_value": 5.10,
+      "result": "PASS"
+    }
+  ]
+}
 ```
+
+`product_item_id` 請先透過 `GET /api/products/{product_id}/inspection-items/` 取得；系統會驗證所有 `is_required=true` 的項目是否完整提交，並在建立檢驗結果時保存當下檢驗標準快照。
