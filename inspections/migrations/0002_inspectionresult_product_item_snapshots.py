@@ -5,13 +5,23 @@ from django.db import migrations, models
 def populate_product_items_and_snapshots(apps, schema_editor):
     InspectionResult = apps.get_model("inspections", "InspectionResult")
     ProductInspectionItem = apps.get_model("products", "ProductInspectionItem")
+    batch_size = 500
     product_item_map = {
         (product_id, item_id): product_item_id
         for product_item_id, product_id, item_id in ProductInspectionItem.objects.values_list("id", "product_id", "item_id")
     }
     updated_results = []
 
-    for result in InspectionResult.objects.select_related("inspection__batch__product", "item").all():
+    def flush_updates():
+        if updated_results:
+            InspectionResult.objects.bulk_update(
+                updated_results,
+                ["product_item", "standard_min_snapshot", "standard_max_snapshot", "inspection_method_snapshot", "unit_snapshot"],
+                batch_size=batch_size,
+            )
+            updated_results.clear()
+
+    for result in InspectionResult.objects.select_related("inspection__batch__product", "item").iterator(chunk_size=batch_size):
         product_item_id = product_item_map.get((result.inspection.batch.product_id, result.item_id))
         if product_item_id is None:
             raise RuntimeError(
@@ -24,13 +34,10 @@ def populate_product_items_and_snapshots(apps, schema_editor):
         result.inspection_method_snapshot = result.item.inspection_method
         result.unit_snapshot = result.item.unit
         updated_results.append(result)
+        if len(updated_results) >= batch_size:
+            flush_updates()
 
-    if updated_results:
-        InspectionResult.objects.bulk_update(
-            updated_results,
-            ["product_item", "standard_min_snapshot", "standard_max_snapshot", "inspection_method_snapshot", "unit_snapshot"],
-            batch_size=500,
-        )
+    flush_updates()
 
 
 class Migration(migrations.Migration):

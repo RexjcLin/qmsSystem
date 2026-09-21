@@ -67,4 +67,4 @@ python manage.py migrate
 }
 ```
 
-`product_item_id` 請先透過 `GET /api/products/{product_id}/inspection-items/` 取得；系統會驗證所有 `is_required=true` 的項目是否完整提交，並在建立檢驗結果時保存當下檢驗標準快照。
+`product_item_id` 請先透過 `GET /api/products/{product_id}/inspection-items/` 取得；該 API 會同時回傳 `item_id` 供顯示/對照使用，但提交時必須使用 `product_item_id`。系統會驗證所有 `is_required=true` 的項目是否完整提交，並在建立檢驗結果時保存當下檢驗標準快照。

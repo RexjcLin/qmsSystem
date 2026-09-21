@@ -95,6 +95,18 @@ class SubmitInspectionAPITests(TestCase):
             [self.product_item_required.id],
         )
 
+    def test_submit_rejects_legacy_item_id_payload(self):
+        response = self.client.post("/api/inspection/submit/", {
+            "batch_id": self.batch.id,
+            "results": [{
+                "item_id": self.product_item_required.item_id,
+                "result": "PASS",
+            }],
+        }, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["errors"]["results"][0]["product_item_id"][0], "此為必需欄位。")
+
     def test_submit_marks_overall_fail_when_required_item_fails(self):
         response = self.client.post("/api/inspection/submit/", {
             "batch_id": self.batch.id,

@@ -18,7 +18,7 @@ class ProductInspectionItemList(APIView):
     permission_classes = [CanAccessInspectionAPI]
     def get(self, request, product_id):
         links = ProductInspectionItem.objects.filter(product_id=product_id).select_related("item")
-        return Response([{ "product_item_id": x.id, "item_name": x.item.name, "method": x.item.inspection_method, "unit": x.item.unit, "standard_min": x.item.standard_min, "standard_max": x.item.standard_max, "is_required": x.is_required } for x in links])
+        return Response([{ "product_item_id": x.id, "item_id": x.item_id, "item_name": x.item.name, "method": x.item.inspection_method, "unit": x.item.unit, "standard_min": x.item.standard_min, "standard_max": x.item.standard_max, "is_required": x.is_required } for x in links])
 
 
 class SubmitInspection(APIView):
