@@ -11,6 +11,7 @@
     .topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}
     .actions{display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
     .language-switcher{display:flex;gap:.5rem;align-items:center;border:0;padding:0;margin:0}
+    .language-switcher legend{font-weight:600;margin-right:.25rem}
     .language-switcher button{padding:.45rem .8rem;border:1px solid #cfd8e3;border-radius:999px;background:#fff;cursor:pointer}
     .language-switcher button[aria-pressed="true"]{background:#0b67bd;color:#fff;border-color:#0b67bd}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem}
@@ -35,8 +36,17 @@
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <fieldset class="language-switcher">
           <legend>{% translate "Language" %}</legend>
-          <button type="submit" name="language" value="zh-hant" aria-pressed="{% if LANGUAGE_CODE == 'zh-hant' %}true{% else %}false{% endif %}">繁體中文</button>
-          <button type="submit" name="language" value="en" aria-pressed="{% if LANGUAGE_CODE == 'en' %}true{% else %}false{% endif %}">English</button>
+          {% with normalized_code=LANGUAGE_CODE|lower %}
+            <label>
+              <input type="radio" name="language" value="zh-hant" {% if normalized_code|slice:":7" == "zh-hant" %}checked{% endif %}>
+              繁體中文
+            </label>
+            <label>
+              <input type="radio" name="language" value="en" {% if normalized_code|slice:":2" == "en" %}checked{% endif %}>
+              English
+            </label>
+          {% endwith %}
+          <button type="submit">{% translate "Apply language" %}</button>
         </fieldset>
       </form>
     </div>
@@ -51,12 +61,15 @@
 
   <h2>{% translate "Recent defect records" %}</h2>
   <table>
-    <tr>
-      <th>{% translate "Product" %}</th>
-      <th>{% translate "Defect type" %}</th>
-      <th>{% translate "Status" %}</th>
-      <th>{% translate "Created at" %}</th>
-    </tr>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Product" %}</th>
+        <th scope="col">{% translate "Defect type" %}</th>
+        <th scope="col">{% translate "Status" %}</th>
+        <th scope="col">{% translate "Created at" %}</th>
+      </tr>
+    </thead>
+    <tbody>
     {% for defect in recent_defects %}
       <tr>
         <td>{{ defect.inspection.batch.product }}</td>
@@ -67,6 +80,7 @@
     {% empty %}
       <tr><td colspan="4">{% translate "There are no defect records right now." %}</td></tr>
     {% endfor %}
+    </tbody>
   </table>
 </body>
 </html>

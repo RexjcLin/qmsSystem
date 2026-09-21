@@ -57,6 +57,8 @@ class InternationalizationTests(TestCase):
         self.assertContains(response, "語言")
         self.assertContains(response, "最近異常紀錄")
         self.assertContains(response, "處理中")
+        self.assertContains(response, 'value="zh-hant" checked', html=False)
+        self.assertContains(response, 'value="en"', html=False)
 
     def test_switching_to_english_persists_via_language_cookie(self):
         self.client.force_login(self.user)
@@ -75,6 +77,8 @@ class InternationalizationTests(TestCase):
         self.assertContains(response, "Recent defect records")
         self.assertContains(response, "Language")
         self.assertContains(response, "In progress")
+        self.assertContains(response, 'value="zh-hant"', html=False)
+        self.assertContains(response, 'value="en" checked', html=False)
 
     def test_language_redirect_rejects_open_redirect_for_anonymous_user(self):
         response = self.client.post(

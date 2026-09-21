@@ -312,6 +312,9 @@ msgstr "語言切換"
 msgid "Language"
 msgstr "語言"
 
+msgid "Apply language"
+msgstr "套用語言"
+
 msgid "Today's inspections"
 msgstr "今日檢驗"
 

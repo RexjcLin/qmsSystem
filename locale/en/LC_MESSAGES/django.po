@@ -1,3 +1,4 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: qmsSystem\n"
@@ -5,9 +6,330 @@ msgstr ""
 "POT-Creation-Date: 2026-09-21 00:00+0000\n"
 "PO-Revision-Date: 2026-09-21 00:00+0000\n"
 "Last-Translator: Copilot\n"
-"Language: en\n"
 "Language-Team: English\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Traditional Chinese"
+msgstr "Traditional Chinese"
+
+msgid "English"
+msgstr "English"
+
+msgid "QMS Administration"
+msgstr "QMS Administration"
+
+msgid "QMS Admin"
+msgstr "QMS Admin"
+
+msgid "Site administration"
+msgstr "Site administration"
+
+msgid "Accounts"
+msgstr "Accounts"
+
+msgid "Products"
+msgstr "Products"
+
+msgid "Inspections"
+msgstr "Inspections"
+
+msgid "Defects"
+msgstr "Defects"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Role name"
+msgstr "Role name"
+
+msgid "Role description"
+msgstr "Role description"
+
+msgid "Created at"
+msgstr "Created at"
+
+msgid "Role"
+msgstr "Role"
+
+msgid "Roles"
+msgstr "Roles"
+
+msgid "Full name"
+msgstr "Full name"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Inactive"
+msgstr "Inactive"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "User"
+msgstr "User"
+
+msgid "Users"
+msgstr "Users"
+
+msgid "QMS profile"
+msgstr "QMS profile"
+
+msgid "Category name"
+msgstr "Category name"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Product category"
+msgstr "Product category"
+
+msgid "Product categories"
+msgstr "Product categories"
+
+msgid "Product code"
+msgstr "Product code"
+
+msgid "Product name"
+msgstr "Product name"
+
+msgid "Category"
+msgstr "Category"
+
+msgid "Specification"
+msgstr "Specification"
+
+msgid "Product"
+msgstr "Product"
+
+msgid "Item name"
+msgstr "Item name"
+
+msgid "Inspection method"
+msgstr "Inspection method"
+
+msgid "Unit"
+msgstr "Unit"
+
+msgid "Standard minimum"
+msgstr "Standard minimum"
+
+msgid "Standard maximum"
+msgstr "Standard maximum"
+
+msgid "Inspection item"
+msgstr "Inspection item"
+
+msgid "Inspection items"
+msgstr "Inspection items"
+
+msgid "Required"
+msgstr "Required"
+
+msgid "Sort order"
+msgstr "Sort order"
+
+msgid "Product inspection item"
+msgstr "Product inspection item"
+
+msgid "Product inspection items"
+msgstr "Product inspection items"
+
+msgctxt "inspection batch status"
+msgid "Pending"
+msgstr "Pending"
+
+msgctxt "inspection batch status"
+msgid "In progress"
+msgstr "In progress"
+
+msgid "Completed"
+msgstr "Completed"
+
+msgid "Cancelled"
+msgstr "Cancelled"
+
+msgid "Batch code"
+msgstr "Batch code"
+
+msgid "Quantity"
+msgstr "Quantity"
+
+msgid "Created by"
+msgstr "Created by"
+
+msgid "Updated at"
+msgstr "Updated at"
+
+msgid "Inspection batch"
+msgstr "Inspection batch"
+
+msgid "Inspection batches"
+msgstr "Inspection batches"
+
+msgid "Pass"
+msgstr "Pass"
+
+msgid "Fail"
+msgstr "Fail"
+
+msgctxt "inspection result status"
+msgid "Pending"
+msgstr "Pending"
+
+msgid "N/A"
+msgstr "N/A"
+
+msgid "Inspector"
+msgstr "Inspector"
+
+msgid "Inspection date"
+msgstr "Inspection date"
+
+msgid "Overall result"
+msgstr "Overall result"
+
+msgid "Remark"
+msgstr "Remark"
+
+msgid "Inspection record"
+msgstr "Inspection record"
+
+msgid "Inspection records"
+msgstr "Inspection records"
+
+msgid "Measured value"
+msgstr "Measured value"
+
+msgid "Result"
+msgstr "Result"
+
+msgid "Inspection result"
+msgstr "Inspection result"
+
+msgid "Inspection results"
+msgstr "Inspection results"
+
+msgid "Defect type name"
+msgstr "Defect type name"
+
+msgid "Defect type"
+msgstr "Defect type"
+
+msgid "Defect types"
+msgstr "Defect types"
+
+msgid "New"
+msgstr "New"
+
+msgid "Confirmed"
+msgstr "Confirmed"
+
+msgctxt "defect status"
+msgid "In progress"
+msgstr "In progress"
+
+msgid "Resolved"
+msgstr "Resolved"
+
+msgid "Closed"
+msgstr "Closed"
+
+msgid "Reported by"
+msgstr "Reported by"
+
+msgid "Defect record"
+msgstr "Defect record"
+
+msgid "Defect records"
+msgstr "Defect records"
+
+msgid "Image"
+msgstr "Image"
+
+msgid "Uploaded at"
+msgstr "Uploaded at"
+
+msgid "Defect image"
+msgstr "Defect image"
+
+msgid "Defect images"
+msgstr "Defect images"
+
+msgctxt "corrective action status"
+msgid "Pending"
+msgstr "Pending"
+
+msgctxt "corrective action status"
+msgid "In progress"
+msgstr "In progress"
+
+msgid "Corrective action description"
+msgstr "Corrective action description"
+
+msgid "Assigned to"
+msgstr "Assigned to"
+
+msgid "Due date"
+msgstr "Due date"
+
+msgid "Completed at"
+msgstr "Completed at"
+
+msgid "Corrective action"
+msgstr "Corrective action"
+
+msgid "Corrective actions"
+msgstr "Corrective actions"
+
+msgid "Inspection batch was not found."
+msgstr "Inspection batch was not found."
+
+msgid "Duplicate inspection items are not allowed."
+msgstr "Duplicate inspection items are not allowed."
+
+msgid "Results contain inspection items that do not belong to this product."
+msgstr "Results contain inspection items that do not belong to this product."
+
+msgid "QMS Dashboard"
+msgstr "QMS Dashboard"
+
+msgid "Quality Management System (QMS)"
+msgstr "Quality Management System (QMS)"
+
+msgid "Welcome, %(user)s"
+msgstr "Welcome, %(user)s"
+
+msgid "Admin site"
+msgstr "Admin site"
+
+msgid "Language switcher"
+msgstr "Language switcher"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Apply language"
+msgstr "Apply language"
+
+msgid "Today's inspections"
+msgstr "Today's inspections"
+
+msgid "Today's passed inspections"
+msgstr "Today's passed inspections"
+
+msgid "Today's failed inspections"
+msgstr "Today's failed inspections"
+
+msgid "Open defects"
+msgstr "Open defects"
+
+msgid "Recent defect records"
+msgstr "Recent defect records"
+
+msgid "There are no defect records right now."
+msgstr "There are no defect records right now."

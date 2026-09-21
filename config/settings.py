@@ -34,6 +34,8 @@ AUTH_PASSWORD_VALIDATORS = []
 LANGUAGE_CODE = "zh-hant"
 LANGUAGES = [("zh-hant", _("Traditional Chinese")), ("en", _("English"))]
 LOCALE_PATHS = [BASE_DIR / "locale"]
+# Django accepts hyphenated language codes and resolves them to locale/zh_Hant
+# on disk via django.utils.translation.to_locale().
 TIME_ZONE = "Asia/Taipei"
 USE_I18N = True
 USE_TZ = True
