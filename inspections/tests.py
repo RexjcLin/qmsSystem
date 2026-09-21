@@ -188,3 +188,27 @@ class SubmitInspectionAPITests(TestCase):
         response = self.client.get("/api/inspection/pending/")
 
         self.assertEqual(response.status_code, 200)
+
+    def test_product_items_endpoint_requires_role(self):
+        other_user = get_user_model().objects.create_user(username="viewer-products")
+        self.client.force_authenticate(other_user)
+
+        response = self.client.get(f"/api/products/{self.product.id}/inspection-items/")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("errors", response.data)
+
+    def test_submit_endpoint_requires_role(self):
+        other_user = get_user_model().objects.create_user(username="viewer-submit")
+        self.client.force_authenticate(other_user)
+
+        response = self.client.post("/api/inspection/submit/", {
+            "batch_id": self.batch.id,
+            "results": [{
+                "product_item_id": self.product_item_required.id,
+                "result": "PASS",
+            }],
+        }, format="json")
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("errors", response.data)

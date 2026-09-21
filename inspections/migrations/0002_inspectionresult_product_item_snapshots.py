@@ -44,6 +44,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("inspections", "0001_initial"),
+        # ProductInspectionItem is introduced in products.0001_initial.
         ("products", "0001_initial"),
     ]
 
