@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils.translation import gettext_lazy as _
 from .models import InspectionBatch, InspectionRecord, InspectionResult
 from products.models import ProductInspectionItem
 
@@ -24,11 +25,11 @@ class SubmitInspectionSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         try: batch = InspectionBatch.objects.select_related("product").get(pk=attrs["batch_id"])
-        except InspectionBatch.DoesNotExist: raise serializers.ValidationError({"batch_id": "找不到檢驗批次。"})
+        except InspectionBatch.DoesNotExist: raise serializers.ValidationError({"batch_id": _("Inspection batch was not found.")})
         permitted = set(ProductInspectionItem.objects.filter(product=batch.product).values_list("item_id", flat=True))
         sent = [item["item_id"] for item in attrs["results"]]
-        if len(sent) != len(set(sent)): raise serializers.ValidationError({"results": "同一檢驗項目不可重複。"})
-        if not set(sent).issubset(permitted): raise serializers.ValidationError({"results": "包含不屬於此產品的檢驗項目。"})
+        if len(sent) != len(set(sent)): raise serializers.ValidationError({"results": _("Duplicate inspection items are not allowed.")})
+        if not set(sent).issubset(permitted): raise serializers.ValidationError({"results": _("Results contain inspection items that do not belong to this product.")})
         attrs["batch"] = batch
         return attrs
 

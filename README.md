@@ -27,6 +27,23 @@ python manage.py runserver
 
 開啟 `http://127.0.0.1:8000/admin/` 先設定角色、產品、檢驗項目與批次；登入後根網址為儀表板。
 
+## 語系與雙語切換
+
+- 預設語言為繁體中文（`zh-hant`），並提供 English 切換。
+- 儀表板右上角提供語言切換按鈕，會使用 Django `set_language` 以 **POST + CSRF 保護** 更新 `django_language` cookie，並導回目前頁面。
+- Django Admin 會沿用相同的語言 cookie，因此從儀表板切換後再進入 Admin，模型名稱、欄位名稱與 choices 會同步顯示對應語言。
+- 專案翻譯檔位於 `locale/zh_Hant/LC_MESSAGES/` 與 `locale/en/LC_MESSAGES/`。
+
+### 翻譯檔編譯
+
+本 repository 已提交可直接執行的 `.mo` 檔，因此即使本機沒有 gettext / `msgfmt` 工具也能直接運作。
+
+若環境已安裝 gettext，可在修改 `.po` 後執行：
+
+```powershell
+django-admin compilemessages
+```
+
 ## MySQL 設定
 
 請設定環境變數後執行 migration：
@@ -35,7 +52,7 @@ python manage.py runserver
 $env:DB_ENGINE='mysql'
 $env:DB_NAME='qms_db'
 $env:DB_USER='root'
-$env:DB_PASSWORD='1qaz@wsx'
+$env:DB_PASSWORD='your-password'
 $env:DB_HOST='127.0.0.1'
 $env:DB_PORT='3306'
 python manage.py migrate
