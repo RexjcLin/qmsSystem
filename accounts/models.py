@@ -1,22 +1,27 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class Role(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    description = models.CharField(max_length=255, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=50, unique=True, verbose_name=_("Role name"))
+    description = models.CharField(max_length=255, blank=True, verbose_name=_("Role description"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
 
     class Meta:
         db_table = "roles"
+        verbose_name = _("Role")
+        verbose_name_plural = _("Roles")
     def __str__(self): return self.name
 
 
 class User(AbstractUser):
-    full_name = models.CharField(max_length=100, blank=True)
-    role = models.ForeignKey(Role, null=True, blank=True, on_delete=models.PROTECT, related_name="users")
-    status = models.CharField(max_length=10, choices=[("ACTIVE", "啟用"), ("INACTIVE", "停用")], default="ACTIVE")
+    full_name = models.CharField(max_length=100, blank=True, verbose_name=_("Full name"))
+    role = models.ForeignKey(Role, null=True, blank=True, on_delete=models.PROTECT, related_name="users", verbose_name=_("Role"))
+    status = models.CharField(max_length=10, choices=[("ACTIVE", _("Active")), ("INACTIVE", _("Inactive"))], default="ACTIVE", verbose_name=_("Status"))
 
     class Meta:
         db_table = "users"
+        verbose_name = _("User")
+        verbose_name_plural = _("Users")
     def __str__(self): return self.full_name or self.username

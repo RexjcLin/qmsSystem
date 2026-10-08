@@ -1,5 +1,6 @@
 import django.db.models.deletion
 from django.db import migrations, models
+from django.utils.translation import gettext_lazy as _
 
 
 def populate_product_items_and_snapshots(apps, schema_editor):
@@ -43,9 +44,8 @@ def populate_product_items_and_snapshots(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("inspections", "0001_initial"),
-        # ProductInspectionItem is introduced in products.0001_initial.
-        ("products", "0001_initial"),
+        ("inspections", "0002_alter_inspectionbatch_options_and_more"),
+        ("products", "0002_alter_inspectionitem_options_alter_product_options_and_more"),
     ]
 
     operations = [
@@ -58,27 +58,28 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.PROTECT,
                 related_name="results",
                 to="products.productinspectionitem",
+                verbose_name=_("Product inspection item"),
             ),
         ),
         migrations.AddField(
             model_name="inspectionresult",
             name="standard_min_snapshot",
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True, verbose_name=_("Standard minimum snapshot")),
         ),
         migrations.AddField(
             model_name="inspectionresult",
             name="standard_max_snapshot",
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True),
+            field=models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True, verbose_name=_("Standard maximum snapshot")),
         ),
         migrations.AddField(
             model_name="inspectionresult",
             name="inspection_method_snapshot",
-            field=models.CharField(blank=True, max_length=100),
+            field=models.CharField(blank=True, max_length=100, verbose_name=_("Inspection method snapshot")),
         ),
         migrations.AddField(
             model_name="inspectionresult",
             name="unit_snapshot",
-            field=models.CharField(blank=True, max_length=30),
+            field=models.CharField(blank=True, max_length=30, verbose_name=_("Unit snapshot")),
         ),
         migrations.RunPython(populate_product_items_and_snapshots, migrations.RunPython.noop),
         migrations.RemoveConstraint(
@@ -92,6 +93,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.PROTECT,
                 related_name="results",
                 to="products.productinspectionitem",
+                verbose_name=_("Product inspection item"),
             ),
         ),
         migrations.AddConstraint(

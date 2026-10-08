@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENVIRONMENT = os.getenv("DJANGO_ENV", "development")
@@ -26,6 +27,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware", "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware", "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware", "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -48,6 +50,10 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 LANGUAGE_CODE = "zh-hant"
+LANGUAGES = [("zh-hant", _("Traditional Chinese")), ("en", _("English"))]
+LOCALE_PATHS = [BASE_DIR / "locale"]
+# Django accepts hyphenated language codes and resolves them to locale/zh_Hant
+# on disk via django.utils.translation.to_locale().
 TIME_ZONE = "Asia/Taipei"
 USE_I18N = True
 USE_TZ = True

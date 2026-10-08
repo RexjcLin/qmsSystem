@@ -1,6 +1,7 @@
 from django.db import transaction
-from rest_framework.exceptions import APIException
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
+from django.utils.translation import gettext_lazy as _
 from .models import BatchStatus, InspectionBatch, InspectionRecord, InspectionResult, ResultStatus
 from products.models import ProductInspectionItem
 
@@ -28,7 +29,7 @@ class SubmitInspectionSerializer(serializers.Serializer):
         try:
             batch = InspectionBatch.objects.select_related("product").get(pk=attrs["batch_id"])
         except InspectionBatch.DoesNotExist:
-            raise serializers.ValidationError({"batch_id": "找不到檢驗批次。"})
+            raise serializers.ValidationError({"batch_id": _("Inspection batch was not found.")})
 
         if batch.status == BatchStatus.CANCELLED:
             raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})

@@ -1,1 +1,86 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QMS 儀表板</title><style>body{font-family:system-ui,sans-serif;margin:2rem;background:#f5f7fa;color:#172033}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem}.card{background:#fff;padding:1.2rem;border-radius:12px;box-shadow:0 1px 4px #0001}.n{font-size:2rem;font-weight:700;color:#0b67bd}table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;padding:.75rem;border-bottom:1px solid #e8e8e8}</style></head><body><h1>品質管理系統 QMS</h1><p>歡迎，{{ request.user }}　<a href="/admin/">管理後台</a></p><section class="grid"><div class="card">今日檢驗<div class="n">{{ today_total }}</div></div><div class="card">今日合格<div class="n">{{ today_pass }}</div></div><div class="card">今日不合格<div class="n">{{ today_fail }}</div></div><div class="card">未結案異常<div class="n">{{ open_defects }}</div></div></section><h2>最近異常紀錄</h2><table><tr><th>產品</th><th>不良類型</th><th>狀態</th><th>建立時間</th></tr>{% for defect in recent_defects %}<tr><td>{{ defect.inspection.batch.product }}</td><td>{{ defect.defect_type }}</td><td>{{ defect.get_status_display }}</td><td>{{ defect.created_at|date:"Y-m-d H:i" }}</td></tr>{% empty %}<tr><td colspan="4">目前沒有異常紀錄</td></tr>{% endfor %}</table></body></html>
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<!doctype html>
+<html lang="{{ LANGUAGE_CODE|default:'zh-Hant' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% translate "QMS Dashboard" %}</title>
+  <style>
+    body{font-family:system-ui,sans-serif;margin:2rem;background:#f5f7fa;color:#172033}
+    .topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem}
+    .actions{display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
+    .language-switcher{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;border:0;padding:0;margin:0}
+    .language-switcher legend{font-weight:600;margin-right:.25rem}
+    .language-switcher label{display:inline-flex;align-items:center;gap:.35rem}
+    .language-switcher button{padding:.45rem .8rem;border:1px solid #cfd8e3;border-radius:999px;background:#fff;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem}
+    .card{background:#fff;padding:1.2rem;border-radius:12px;box-shadow:0 1px 4px #0001}
+    .n{font-size:2rem;font-weight:700;color:#0b67bd}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{text-align:left;padding:.75rem;border-bottom:1px solid #e8e8e8}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div>
+      <h1>{% translate "Quality Management System (QMS)" %}</h1>
+      <p>
+        {% blocktranslate with user=request.user %}Welcome, {{ user }}{% endblocktranslate %}
+        <a href="{% url 'admin:index' %}">{% translate "Admin site" %}</a>
+      </p>
+    </div>
+    <div class="actions">
+      <form action="{% url 'set_language' %}" method="post" aria-label="{% translate 'Language switcher' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <fieldset class="language-switcher">
+          <legend>{% translate "Language" %}</legend>
+          {% with normalized_code=LANGUAGE_CODE|lower %}
+            <label>
+              <input type="radio" name="language" value="zh-hant" {% if normalized_code|slice:":7" == "zh-hant" %}checked{% endif %}>
+              繁體中文
+            </label>
+            <label>
+              <input type="radio" name="language" value="en" {% if normalized_code|slice:":2" == "en" %}checked{% endif %}>
+              English
+            </label>
+          {% endwith %}
+          <button type="submit">{% translate "Apply language" %}</button>
+        </fieldset>
+      </form>
+    </div>
+  </div>
+
+  <section class="grid">
+    <div class="card">{% translate "Today's inspections" %}<div class="n">{{ today_total }}</div></div>
+    <div class="card">{% translate "Today's passed inspections" %}<div class="n">{{ today_pass }}</div></div>
+    <div class="card">{% translate "Today's failed inspections" %}<div class="n">{{ today_fail }}</div></div>
+    <div class="card">{% translate "Open defects" %}<div class="n">{{ open_defects }}</div></div>
+  </section>
+
+  <h2>{% translate "Recent defect records" %}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">{% translate "Product" %}</th>
+        <th scope="col">{% translate "Defect type" %}</th>
+        <th scope="col">{% translate "Status" %}</th>
+        <th scope="col">{% translate "Created at" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for defect in recent_defects %}
+      <tr>
+        <td>{{ defect.inspection.batch.product }}</td>
+        <td>{{ defect.defect_type }}</td>
+        <td>{{ defect.get_status_display }}</td>
+        <td>{{ defect.created_at|date:"Y-m-d H:i" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">{% translate "There are no defect records right now." %}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
