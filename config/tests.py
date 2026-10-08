@@ -108,7 +108,7 @@ class InternationalizationTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(zh_response.status_code, 400)
-        self.assertEqual(zh_response.json()["batch_id"][0], "找不到檢驗批次。")
+        self.assertEqual(zh_response.json()["errors"]["batch_id"][0], "找不到檢驗批次。")
 
         self.client.post(reverse("set_language"), {"language": "en", "next": reverse("dashboard")})
         en_response = self.client.post(
@@ -117,4 +117,4 @@ class InternationalizationTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(en_response.status_code, 400)
-        self.assertEqual(en_response.json()["batch_id"][0], "Inspection batch was not found.")
+        self.assertEqual(en_response.json()["errors"]["batch_id"][0], "Inspection batch was not found.")

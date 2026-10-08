@@ -18,6 +18,6 @@ class InspectionRecordAdmin(admin.ModelAdmin):
 
 @admin.register(InspectionResult)
 class InspectionResultAdmin(admin.ModelAdmin):
-    list_display = ("inspection", "item", "measured_value", "result")
+    list_display = ("inspection", "product_item", "measured_value", "result")
     list_filter = ("result",)
-    search_fields = ("inspection__batch__code", "item__name", "remark")
+    search_fields = ("inspection__batch__code", "product_item__item__name", "remark")

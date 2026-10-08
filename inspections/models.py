@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
-from products.models import Product, InspectionItem
+from products.models import Product, ProductInspectionItem
 
 
 class BatchStatus(models.TextChoices):
@@ -49,12 +49,16 @@ class InspectionRecord(models.Model):
 
 class InspectionResult(models.Model):
     inspection = models.ForeignKey(InspectionRecord, on_delete=models.CASCADE, related_name="results", verbose_name=_("Inspection record"))
-    item = models.ForeignKey(InspectionItem, on_delete=models.PROTECT, related_name="results", verbose_name=_("Inspection item"))
+    product_item = models.ForeignKey(ProductInspectionItem, on_delete=models.PROTECT, related_name="results", verbose_name=_("Product inspection item"))
     measured_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Measured value"))
     result = models.CharField(max_length=8, choices=ResultStatus.choices, verbose_name=_("Result"))
+    standard_min_snapshot = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Standard minimum snapshot"))
+    standard_max_snapshot = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name=_("Standard maximum snapshot"))
+    inspection_method_snapshot = models.CharField(max_length=100, blank=True, verbose_name=_("Inspection method snapshot"))
+    unit_snapshot = models.CharField(max_length=30, blank=True, verbose_name=_("Unit snapshot"))
     remark = models.TextField(blank=True, verbose_name=_("Remark"))
     class Meta:
         db_table = "inspection_results"
-        constraints = [models.UniqueConstraint(fields=["inspection", "item"], name="uq_inspection_item")]
+        constraints = [models.UniqueConstraint(fields=["inspection", "product_item"], name="uq_inspection_product_item")]
         verbose_name = _("Inspection result")
         verbose_name_plural = _("Inspection results")
