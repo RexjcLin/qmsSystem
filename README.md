@@ -73,3 +73,10 @@ python manage.py migrate
 ```json
 {"batch_id": 1, "remark": "首件檢驗", "results": [{"item_id": 1, "measured_value": 5.10, "result": "PASS"}]}
 ```
+
+
+## Android Studio / Android App
+
+- Android Studio 專案位於 `android-app/`
+- 可直接在 Android Studio 開啟 `android-app` 資料夾
+- 首版已包含登入、待檢驗批次、檢驗項目、檢驗結果填寫四個核心畫面
