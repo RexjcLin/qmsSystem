@@ -1,5 +1,7 @@
 package com.rexjclin.qmsmobile.ui.screens
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rexjclin.qmsmobile.model.InspectionBatchItem
 import com.rexjclin.qmsmobile.ui.viewmodel.PendingBatchesViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PendingBatchesScreen(
     viewModel: PendingBatchesViewModel,

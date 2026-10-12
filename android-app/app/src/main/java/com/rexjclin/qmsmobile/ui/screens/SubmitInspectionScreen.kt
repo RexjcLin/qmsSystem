@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package com.rexjclin.qmsmobile.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,7 +34,6 @@ import com.rexjclin.qmsmobile.model.InspectionItemDisplayModel
 import com.rexjclin.qmsmobile.model.InspectionResultDraft
 import com.rexjclin.qmsmobile.ui.viewmodel.InspectionSubmitViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubmitInspectionScreen(
     batchId: Int,

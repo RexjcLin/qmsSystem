@@ -1,16 +1,16 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
     namespace = "com.rexjclin.qmsmobile"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.rexjclin.qmsmobile"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
