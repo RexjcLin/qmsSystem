@@ -33,6 +33,7 @@ data class InspectionItemsUiState(
 data class SubmitInspectionUiState(
     val isLoading: Boolean = true,
     val isSubmitting: Boolean = false,
+    val isClaimed: Boolean = false,
     val items: List<InspectionItemDisplayModel> = emptyList(),
     val drafts: Map<Int, InspectionResultDraft> = emptyMap(),
     val batchRemark: String = "",
@@ -144,15 +145,21 @@ class InspectionSubmitViewModel(
     }
 
     fun refresh() {
+        if (_state.value.isSubmitting || _state.value.lastSubmission != null) return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null, successMessage = null) }
-            runCatching { repository.getInspectionItems(productId) }
+            runCatching {
+                val items = repository.getInspectionItems(productId)
+                repository.startInspection(batchId)
+                items
+            }
                 .onSuccess { items ->
                     val drafts = items.associate { item ->
                         item.itemId to (_state.value.drafts[item.itemId] ?: InspectionResultDraft(itemId = item.itemId))
                     }
                     _state.value = _state.value.copy(
                         isLoading = false,
+                        isClaimed = true,
                         items = items,
                         drafts = drafts,
                         errorMessage = null,
@@ -161,6 +168,7 @@ class InspectionSubmitViewModel(
                 .onFailure { error ->
                     _state.value = _state.value.copy(
                         isLoading = false,
+                        isClaimed = false,
                         errorMessage = error.message ?: "載入檢驗項目失敗。",
                     )
                 }
@@ -199,6 +207,7 @@ class InspectionSubmitViewModel(
 
     fun submit() {
         val snapshot = _state.value
+        if (snapshot.isSubmitting || snapshot.isLoading || !snapshot.isClaimed || snapshot.lastSubmission != null) return
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, errorMessage = null, successMessage = null) }
             runCatching {
@@ -207,7 +216,8 @@ class InspectionSubmitViewModel(
                 _state.update {
                     it.copy(
                         isSubmitting = false,
-                        successMessage = "送出成功：${response.overall_result}",
+                        isClaimed = false,
+                        successMessage = "送出成功：${response.overall_result}；建立 ${response.defect_ids.size} 筆缺陷紀錄。",
                         lastSubmission = response,
                     )
                 }
@@ -219,6 +229,21 @@ class InspectionSubmitViewModel(
                     )
                 }
             }
+        }
+    }
+
+    fun release(onReleased: () -> Unit) {
+        if (_state.value.isSubmitting || !_state.value.isClaimed) return
+        viewModelScope.launch {
+            _state.update { it.copy(isSubmitting = true, errorMessage = null) }
+            runCatching { repository.releaseInspection(batchId) }
+                .onSuccess {
+                    _state.update { it.copy(isSubmitting = false, isClaimed = false) }
+                    onReleased()
+                }
+                .onFailure { error ->
+                    _state.update { it.copy(isSubmitting = false, errorMessage = error.message ?: "無法釋放檢驗批次。") }
+                }
         }
     }
 }

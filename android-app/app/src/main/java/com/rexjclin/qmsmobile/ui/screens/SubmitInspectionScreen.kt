@@ -1,3 +1,4 @@
+
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 
 package com.rexjclin.qmsmobile.ui.screens
@@ -12,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +54,14 @@ fun SubmitInspectionScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
                     }
                 },
+                actions = {
+                    IconButton(onClick = viewModel::refresh, enabled = !state.isLoading && !state.isSubmitting && state.lastSubmission == null) {
+                        Icon(Icons.Default.Refresh, contentDescription = "重試或續作")
+                    }
+                    IconButton(onClick = { viewModel.release(onBack) }, enabled = state.isClaimed && !state.isSubmitting) {
+                        Icon(Icons.Default.Stop, contentDescription = "釋放檢驗批次")
+                    }
+                },
             )
         },
     ) { paddingValues ->
@@ -83,6 +94,7 @@ fun SubmitInspectionScreen(
                     InspectionInputCard(
                         item = item,
                         draft = draft,
+                        enabled = state.isClaimed && !state.isSubmitting && state.lastSubmission == null,
                         onMeasuredValueChange = { viewModel.updateMeasuredValue(item.itemId, it) },
                         onResultChange = { viewModel.updateResult(item.itemId, it) },
                         onRemarkChange = { viewModel.updateRemark(item.itemId, it) },
@@ -94,13 +106,14 @@ fun SubmitInspectionScreen(
                         onValueChange = viewModel::updateBatchRemark,
                         modifier = Modifier.fillMaxWidth(),
                         label = { Text("整批備註") },
+                        enabled = state.isClaimed && !state.isSubmitting && state.lastSubmission == null,
                         minLines = 3,
                     )
                 }
                 item {
                     Button(
                         onClick = viewModel::submit,
-                        enabled = !state.isSubmitting,
+                        enabled = state.isClaimed && !state.isSubmitting && state.lastSubmission == null,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(if (state.isSubmitting) "送出中..." else "送出檢驗結果")
@@ -115,6 +128,7 @@ fun SubmitInspectionScreen(
 private fun InspectionInputCard(
     item: InspectionItemDisplayModel,
     draft: InspectionResultDraft,
+    enabled: Boolean,
     onMeasuredValueChange: (String) -> Unit,
     onResultChange: (String) -> Unit,
     onRemarkChange: (String) -> Unit,
@@ -130,12 +144,14 @@ private fun InspectionInputCard(
                 onValueChange = onMeasuredValueChange,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("量測值") },
+                enabled = enabled,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             )
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("PASS", "FAIL", "NA").forEach { option ->
                     FilterChip(
                         selected = draft.result == option,
+                        enabled = enabled && !(item.isRequired && option == "NA"),
                         onClick = { onResultChange(option) },
                         label = { Text(option) },
                     )
@@ -146,6 +162,7 @@ private fun InspectionInputCard(
                 onValueChange = onRemarkChange,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("備註") },
+                enabled = enabled,
                 minLines = 2,
             )
         }

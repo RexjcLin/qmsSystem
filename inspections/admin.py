@@ -4,7 +4,7 @@ from .models import InspectionBatch, InspectionRecord, InspectionResult
 
 @admin.register(InspectionBatch)
 class InspectionBatchAdmin(admin.ModelAdmin):
-    list_display = ("code", "product", "quantity", "status", "created_by", "created_at")
+    list_display = ("code", "product", "quantity", "status", "assigned_inspector", "created_by", "created_at")
     list_filter = ("status", "product")
     search_fields = ("code", "product__name", "product__code")
 

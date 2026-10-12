@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render
 from django.utils import timezone
 from inspections.models import InspectionRecord
@@ -6,6 +6,7 @@ from defects.models import DefectRecord
 
 
 @login_required
+@permission_required(("inspections.view_inspectionrecord", "defects.view_defectrecord"), raise_exception=True)
 def dashboard(request):
     records = InspectionRecord.objects.all()
     today = records.filter(inspection_date__date=timezone.localdate())

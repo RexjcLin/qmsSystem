@@ -8,6 +8,8 @@ import com.rexjclin.qmsmobile.model.SubmitInspectionResponse
 import com.rexjclin.qmsmobile.model.SubmitInspectionResultInput
 import com.rexjclin.qmsmobile.util.BasicAuthTokenFactory
 import com.rexjclin.qmsmobile.util.InspectionDraftValidator
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import java.io.IOException
@@ -30,6 +32,22 @@ class QmsRepository(
 
     suspend fun logout() {
         authTokenStore.clearSession()
+    }
+
+    suspend fun startInspection(batchId: Int) {
+        try {
+            api.startInspection(requireAuthToken(), batchId)
+        } catch (exception: Exception) {
+            throw IllegalStateException(mapError(exception, "無法開始檢驗。"))
+        }
+    }
+
+    suspend fun releaseInspection(batchId: Int) {
+        try {
+            api.releaseInspection(requireAuthToken(), batchId)
+        } catch (exception: Exception) {
+            throw IllegalStateException(mapError(exception, "無法釋放檢驗批次。"))
+        }
     }
 
     suspend fun getPendingBatches(): List<InspectionBatchItem> {
@@ -55,7 +73,7 @@ class QmsRepository(
         return try {
             api.getInspectionItems(auth, productId).map { dto ->
                 InspectionItemDisplayModel(
-                    itemId = dto.itemId,
+                    itemId = dto.productItemId,
                     itemName = dto.itemName,
                     method = dto.method,
                     unit = dto.unit,
@@ -85,7 +103,7 @@ class QmsRepository(
             results = items.mapNotNull { item ->
                 val draft = drafts[item.itemId] ?: return@mapNotNull null
                 SubmitInspectionResultInput(
-                    item_id = item.itemId,
+                    product_item_id = item.itemId,
                     measured_value = InspectionDraftValidator.toBigDecimalOrNull(draft.measuredValue),
                     result = draft.result ?: return@mapNotNull null,
                     remark = draft.remark,
@@ -103,12 +121,27 @@ class QmsRepository(
         ?: throw IllegalStateException("請先登入後再操作。")
 
     private fun mapError(exception: Exception, fallback: String): String = when (exception) {
-        is HttpException -> when (exception.code()) {
-            401, 403 -> "驗證失敗，請重新登入。"
-            else -> fallback
+        is HttpException -> {
+            val details = runCatching {
+                exception.response()?.errorBody()?.string()?.let {
+                    flattenErrors(JsonParser.parseString(it)).joinToString("\n")
+                }
+            }.getOrNull()
+            details?.takeIf { it.isNotBlank() } ?: when (exception.code()) {
+                401 -> "帳號或密碼不正確，請重新登入。"
+                403 -> "帳號未啟用或沒有此操作的權限。"
+                else -> fallback
+            }
         }
         is IOException -> "無法連線到伺服器，請確認裝置與後端是否在同一網路。"
         is IllegalStateException -> exception.message ?: fallback
         else -> fallback
+    }
+
+    private fun flattenErrors(element: JsonElement): List<String> = when {
+        element.isJsonObject -> element.asJsonObject.entrySet().flatMap { flattenErrors(it.value) }
+        element.isJsonArray -> element.asJsonArray.flatMap { flattenErrors(it) }
+        element.isJsonPrimitive && element.asJsonPrimitive.isString -> listOf(element.asString)
+        else -> emptyList()
     }
 }

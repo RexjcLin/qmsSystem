@@ -1,4 +1,5 @@
 import json
+from base64 import b64encode
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
@@ -118,3 +119,14 @@ class InternationalizationTests(TestCase):
         )
         self.assertEqual(en_response.status_code, 400)
         self.assertEqual(en_response.json()["errors"]["batch_id"][0], "Inspection batch was not found.")
+
+    def test_android_emulator_host_can_access_inspection_api(self):
+        credentials = b64encode(b"inspector:secret123").decode("ascii")
+
+        response = self.client.get(
+            "/api/inspection/pending/",
+            HTTP_HOST="10.0.2.2:8000",
+            HTTP_AUTHORIZATION=f"Basic {credentials}",
+        )
+
+        self.assertEqual(response.status_code, 200)

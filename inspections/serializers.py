@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
 from django.utils.translation import gettext_lazy as _
+from defects.models import DefectRecord, DefectType
 from .models import BatchStatus, InspectionBatch, InspectionRecord, InspectionResult, ResultStatus
 from products.models import ProductInspectionItem
 
@@ -10,7 +11,7 @@ class PendingBatchSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source="product.name", read_only=True)
     class Meta:
         model = InspectionBatch
-        fields = ["id", "code", "product", "product_name", "quantity", "status"]
+        fields = ["id", "code", "product", "product_name", "quantity", "status", "assigned_inspector"]
 
 
 class InspectionResultInputSerializer(serializers.Serializer):
@@ -25,21 +26,26 @@ class SubmitInspectionSerializer(serializers.Serializer):
     remark = serializers.CharField(required=False, allow_blank=True)
     results = InspectionResultInputSerializer(many=True)
 
+    def _validate_batch(self, batch):
+        if batch.status == BatchStatus.CANCELLED:
+            raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})
+        if batch.status == BatchStatus.COMPLETED:
+            raise serializers.ValidationError({"batch_id": "此批次已完成檢驗，不可重複提交。"})
+        if batch.assigned_inspector_id and batch.assigned_inspector_id != self.context["request"].user.pk:
+            raise serializers.ValidationError({"batch_id": "此批次已由其他人員開始檢驗。"})
+
     def validate(self, attrs):
         try:
             batch = InspectionBatch.objects.select_related("product").get(pk=attrs["batch_id"])
         except InspectionBatch.DoesNotExist:
             raise serializers.ValidationError({"batch_id": _("Inspection batch was not found.")})
 
-        if batch.status == BatchStatus.CANCELLED:
-            raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})
-        if batch.status == BatchStatus.COMPLETED:
-            raise serializers.ValidationError({"batch_id": "此批次已完成檢驗，不可重複提交。"})
-        if batch.status == BatchStatus.INSPECTING:
-            raise serializers.ValidationError({"batch_id": "此批次正在檢驗中，請勿重複提交。"})
+        self._validate_batch(batch)
 
         links = ProductInspectionItem.objects.filter(product=batch.product).select_related("item")
         product_items = {link.id: link for link in links}
+        if not product_items:
+            raise serializers.ValidationError({"batch_id": "此產品尚未設定檢驗項目。"})
         required_ids = {link.id for link in links if link.is_required}
         sent = [item["product_item_id"] for item in attrs["results"]]
         if len(sent) != len(set(sent)):
@@ -65,6 +71,23 @@ class SubmitInspectionSerializer(serializers.Serializer):
                 "required_na_product_item_ids": required_na_ids,
             })
 
+        if not attrs["results"] or all(row["result"] == ResultStatus.NA for row in attrs["results"]):
+            raise serializers.ValidationError({"results": "至少需要一項有效的檢驗結果。"})
+        for row in attrs["results"]:
+            item = product_items[row["product_item_id"]].item
+            if row["result"] == ResultStatus.NA:
+                continue
+            value = row.get("measured_value")
+            if item.standard_min is not None or item.standard_max is not None:
+                if value is None:
+                    raise serializers.ValidationError({"results": f"{item.name} 必須輸入量測值。"})
+                out_of_range = (
+                    item.standard_min is not None and value < item.standard_min
+                    or item.standard_max is not None and value > item.standard_max
+                )
+                if out_of_range and row["result"] == ResultStatus.PASS:
+                    raise serializers.ValidationError({"results": f"{item.name} 的量測值超出規格，不可標記為 PASS。"})
+
         attrs["product_items"] = product_items
         attrs["batch"] = batch
         return attrs
@@ -78,16 +101,15 @@ class SubmitInspectionSerializer(serializers.Serializer):
         try:
             with transaction.atomic():
                 batch = InspectionBatch.objects.select_for_update().select_related("product").get(pk=validated_data["batch"].pk)
-                if batch.status == BatchStatus.CANCELLED:
-                    raise serializers.ValidationError({"batch_id": "已取消的批次不可提交檢驗結果。"})
-                if batch.status == BatchStatus.COMPLETED:
-                    raise serializers.ValidationError({"batch_id": "此批次已完成檢驗，不可重複提交。"})
-                if batch.status == BatchStatus.INSPECTING:
-                    raise serializers.ValidationError({"batch_id": "此批次正在檢驗中，請勿重複提交。"})
+                validated_data = self.validate({
+                    "batch_id": batch.pk,
+                    "results": validated_data["results"],
+                    "remark": validated_data.get("remark", ""),
+                })
 
-                if batch.status == BatchStatus.PENDING:
-                    batch.status = BatchStatus.INSPECTING
-                    batch.save(update_fields=["status", "updated_at"])
+                batch.status = BatchStatus.INSPECTING
+                batch.assigned_inspector = self.context["request"].user
+                batch.save(update_fields=["status", "assigned_inspector", "updated_at"])
 
                 rows = validated_data["results"]
                 product_items = validated_data["product_items"]
@@ -112,6 +134,23 @@ class SubmitInspectionSerializer(serializers.Serializer):
                     )
                     for r in rows
                 ])
+                failed_rows = [row for row in rows if row["result"] == ResultStatus.FAIL]
+                if failed_rows:
+                    defect_type, _ = DefectType.objects.get_or_create(
+                        name="Inspection failure", defaults={"description": "Nonconformance reported during inspection."},
+                    )
+                    for row in failed_rows:
+                        item = product_items[row["product_item_id"]].item
+                        DefectRecord.objects.create(
+                            inspection=record,
+                            defect_type=defect_type,
+                            reported_by=self.context["request"].user,
+                            description=(
+                                f"{item.name}: {row.get('measured_value')} {item.unit}; "
+                                f"standard {item.standard_min} ~ {item.standard_max}. "
+                                f"{row.get('remark', '')}"
+                            ),
+                        )
                 batch.status = BatchStatus.COMPLETED
                 batch.save(update_fields=["status", "updated_at"])
                 return record

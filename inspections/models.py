@@ -17,6 +17,7 @@ class InspectionBatch(models.Model):
     quantity = models.PositiveIntegerField(verbose_name=_("Quantity"))
     status = models.CharField(max_length=12, choices=BatchStatus.choices, default=BatchStatus.PENDING, verbose_name=_("Status"))
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="created_batches", verbose_name=_("Created by"))
+    assigned_inspector = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="claimed_batches", verbose_name=_("Assigned inspector"))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Created at"))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_("Updated at"))
     class Meta:

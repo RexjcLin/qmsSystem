@@ -13,7 +13,7 @@ if not SECRET_KEY:
     SECRET_KEY = "replace-this-in-development"
 
 DEBUG = os.getenv("DJANGO_DEBUG", "1" if ENVIRONMENT != "production" else "0") == "1"
-ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1" if DEBUG else "").split(",") if host]
+ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,10.0.2.2" if DEBUG and ENVIRONMENT != "production" else "localhost,127.0.0.1" if DEBUG else "").split(",") if host]
 CSRF_TRUSTED_ORIGINS = [origin for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if origin]
 if ENVIRONMENT == "production" and DEBUG:
     raise ImproperlyConfigured("DJANGO_DEBUG must be disabled in production.")
@@ -62,6 +62,7 @@ MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = ["accounts.backends.RoleBackend"]
 LOGIN_URL = "/admin/login/"
 REST_FRAMEWORK = {"DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"], "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication", "rest_framework.authentication.BasicAuthentication"]}
 REST_FRAMEWORK["EXCEPTION_HANDLER"] = "config.api.qms_exception_handler"

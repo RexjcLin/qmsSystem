@@ -20,7 +20,7 @@ data class PendingBatchDto(
 )
 
 data class InspectionItemDto(
-    @SerializedName("item_id") val itemId: Int,
+    @SerializedName("product_item_id") val productItemId: Int,
     @SerializedName("item_name") val itemName: String,
     @SerializedName("method") val method: String,
     @SerializedName("unit") val unit: String,
@@ -30,6 +30,12 @@ data class InspectionItemDto(
 )
 
 interface QmsApi {
+    @POST("inspection/batches/{batchId}/start/")
+    suspend fun startInspection(@Header("Authorization") authHeader: String, @Path("batchId") batchId: Int): PendingBatchDto
+
+    @POST("inspection/batches/{batchId}/release/")
+    suspend fun releaseInspection(@Header("Authorization") authHeader: String, @Path("batchId") batchId: Int): PendingBatchDto
+
     @GET("inspection/pending/")
     suspend fun getPendingBatches(@Header("Authorization") authHeader: String): List<PendingBatchDto>
 

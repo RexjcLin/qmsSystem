@@ -51,7 +51,7 @@ data class SubmitInspectionRequest(
 )
 
 data class SubmitInspectionResultInput(
-    val item_id: Int,
+    val product_item_id: Int,
     val measured_value: BigDecimal?,
     val result: String,
     val remark: String,
@@ -60,6 +60,7 @@ data class SubmitInspectionResultInput(
 data class SubmitInspectionResponse(
     val inspection_id: Int,
     val overall_result: String,
+    val defect_ids: List<Int> = emptyList(),
 )
 
 enum class AuthSessionState {

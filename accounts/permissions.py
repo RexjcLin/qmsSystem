@@ -7,7 +7,11 @@ class RolePermission(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         role_name = getattr(getattr(user, "role", None), "name", "")
-        return bool(user and user.is_authenticated and role_name in self.allowed_roles)
+        return bool(
+            user and user.is_authenticated and user.is_active and user.status == "ACTIVE"
+            and (user.is_superuser or role_name in self.allowed_roles)
+            and user.has_perms(getattr(view, "required_permissions", ()))
+        )
 
 
 class IsAdmin(RolePermission):
